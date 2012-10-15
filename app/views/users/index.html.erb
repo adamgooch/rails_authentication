@@ -1,0 +1,8 @@
+<h1>Authenticate</h1>
+<%= form_tag("/authenticate", :method => "get") do %>
+  <%= label_tag(:email, "Email") %><br />
+  <%= text_field_tag(:email) %><br />
+  <%= label_tag(:password, "Password") %><br />
+  <%= text_field_tag(:password) %><br />
+  <%= submit_tag("Log In") %>
+<% end %>
