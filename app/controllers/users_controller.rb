@@ -26,7 +26,7 @@ class UsersController < ApplicationController
 
   def authenticate
     user = User.find_by_email(params[:email])
-    if user
+    if user && user.password_digest == params[:password]
       flash[:success] = 'Nice!'
       redirect_to user
     else
