@@ -1,3 +1,5 @@
+require 'pbkdf2'
+
 class UsersController < ApplicationController
   def index
 
@@ -10,7 +12,7 @@ class UsersController < ApplicationController
   def create
     @user = User.new
     @user.email = params[:user][:email]
-    @user.password_digest = params[:user][:password]
+    @user.password_digest = encrypt(params[:user][:password])
     if @user.save
       redirect_to @user
       flash[:success] = 'Good Job!'
@@ -33,6 +35,21 @@ class UsersController < ApplicationController
       flash[:error] = 'Failed Log In'
       render :index
     end
+  end
+
+  private
+
+  def encrypt(clear_text)
+    derived_key = PBKDF2.new do |key|
+      key.password = clear_text
+      key.salt = make_salt
+      key.iterations = 10000
+    end
+    return derived_key.hex_string
+  end
+
+  def make_salt
+    return "dumb salt"
   end
 
 end
