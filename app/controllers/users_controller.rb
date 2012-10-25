@@ -13,7 +13,8 @@ class UsersController < ApplicationController
     @user = User.new
     @user.email = params[:user][:email]
     if params[:user][:password] == params[:user][:password_confirmation]
-      @user.password_digest = encrypt(params[:user][:password])
+      @user.salt = make_salt
+      @user.password_digest = encrypt(params[:user][:password], @user.salt)
       if @user.save
         flash[:success] = 'Good Job!'
         redirect_to @user
@@ -33,7 +34,7 @@ class UsersController < ApplicationController
 
   def authenticate
     user = User.find_by_email(params[:email])
-    if user && user.password_digest == encrypt(params[:password])
+    if user && user.password_digest == encrypt(params[:password], user.salt)
       flash[:success] = 'Nice!'
       redirect_to user
     else
@@ -44,17 +45,17 @@ class UsersController < ApplicationController
 
   private
 
-  def encrypt(clear_text)
+  def encrypt(clear_text, salt)
     derived_key = PBKDF2.new do |key|
       key.password = clear_text
-      key.salt = make_salt
+      key.salt = salt
       key.iterations = 10000
     end
     return derived_key.hex_string
   end
 
   def make_salt
-    return "dumb salt"
+    return SecureRandom.hex
   end
 
 end
