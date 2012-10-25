@@ -12,13 +12,18 @@ class UsersController < ApplicationController
   def create
     @user = User.new
     @user.email = params[:user][:email]
-    @user.password_digest = encrypt(params[:user][:password])
-    if @user.save
-      redirect_to @user
-      flash[:success] = 'Good Job!'
+    if params[:user][:password] == params[:user][:password_confirmation]
+      @user.password_digest = encrypt(params[:user][:password])
+      if @user.save
+        flash[:success] = 'Good Job!'
+        redirect_to @user
+      else
+        flash.now[:error] = 'What Happened?'
+        render :new
+      end
     else
+      flash.now[:error] = 'Password conirmation does not match password'
       render :new
-      flash[:error] = 'What Happened?'
     end
   end
 
@@ -28,11 +33,11 @@ class UsersController < ApplicationController
 
   def authenticate
     user = User.find_by_email(params[:email])
-    if user && user.password_digest == params[:password]
+    if user && user.password_digest == encrypt(params[:password])
       flash[:success] = 'Nice!'
       redirect_to user
     else
-      flash[:error] = 'Failed Log In'
+      flash.now[:error] = 'Failed Log In'
       render :index
     end
   end
